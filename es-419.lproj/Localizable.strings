@@ -1,0 +1,13 @@
+/* 
+  Localizable.strings
+  weelab2
+
+  Created by Cubosoft on 4/5/23.
+  
+*/
+"update" = "Última actualización:";
+"weelab_widget" = "WIDGET WEELAB";
+"weelab_use" = "Widget para monitorear sus dispositivos";
+"thermometer" = "Termómetro";
+"user_not_logged" = "No ha iniciado sesión";
+"under_maintenance" = "En mantenimiento";
