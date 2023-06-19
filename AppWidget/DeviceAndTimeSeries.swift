@@ -1,13 +1,14 @@
 import Foundation
 struct DeviceAndTimeSeries: Identifiable {
     var id: String = ""
-    var name: String = ""
-    var temperatureThresholdHigh: CGFloat?
-    var temperatureThresholdLow: CGFloat?
-    var lastTelemetryTemperature: CGFloat?
-    var lastTelemetryHumidity: CGFloat?
-    var isAlarmActive: Bool?
-    var isMaintenanceActive: Bool?
-    var listTelemetryToDraw: [CGFloat]?
+    var deviceName: String = ""
+    var temperatureThresholdHigh: CGFloat = -99999
+    var temperatureThresholdLow: CGFloat = -99999
+    var lastTelemetryTemperature: CGFloat = -99999
+    var lastTelemetryHumidity: CGFloat = -99999
+    var listTelemetryToDraw: [CGFloat] = [0.0]
+    var isAlarmActive: Bool = false
+    var isMaintenanceActive: Bool = false
+    var isDeviceActive: Bool = true
 }
 

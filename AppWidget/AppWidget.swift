@@ -11,33 +11,36 @@ struct Provider: IntentTimelineProvider {
         var deviceAndTimeSeries2 = DeviceAndTimeSeries()
         var deviceAndTimeSeries3 = DeviceAndTimeSeries()
         deviceAndTimeSeries1.id = "111"
-        deviceAndTimeSeries1.name = "\(NSLocalizedString("thermometer", comment: "")) 1"
+        deviceAndTimeSeries1.deviceName = "\(NSLocalizedString("thermometer", comment: "")) 1"
         deviceAndTimeSeries1.temperatureThresholdHigh = 40.5
         deviceAndTimeSeries1.temperatureThresholdLow = 3.5
         deviceAndTimeSeries1.lastTelemetryTemperature = 25.5
         deviceAndTimeSeries1.lastTelemetryHumidity = 81.3
         deviceAndTimeSeries1.isAlarmActive = true
         deviceAndTimeSeries1.isMaintenanceActive = false
+        deviceAndTimeSeries1.isDeviceActive = true
         deviceAndTimeSeries1.listTelemetryToDraw = [33.5, 30.7, 35.6, 34.8, 30.7, 35.6, 34.8, 44.4]
         demo.append(deviceAndTimeSeries1)
         deviceAndTimeSeries2.id = "222"
-        deviceAndTimeSeries2.name = "\(NSLocalizedString("thermometer", comment: "")) 2"
+        deviceAndTimeSeries2.deviceName = "\(NSLocalizedString("thermometer", comment: "")) 2"
         deviceAndTimeSeries2.temperatureThresholdHigh = 20.5
         deviceAndTimeSeries2.temperatureThresholdLow = 10.5
         deviceAndTimeSeries2.lastTelemetryTemperature = 18.2
         deviceAndTimeSeries2.lastTelemetryHumidity = 72.5
         deviceAndTimeSeries2.isAlarmActive = false
         deviceAndTimeSeries2.isMaintenanceActive = false
+        deviceAndTimeSeries1.isDeviceActive = true
         deviceAndTimeSeries2.listTelemetryToDraw = [17.5, 13.7, 15.6, 16.8, 13.7, 15.6, 16.8, 14.4]
         demo.append(deviceAndTimeSeries2)
         deviceAndTimeSeries3.id = "333"
-        deviceAndTimeSeries3.name = "\(NSLocalizedString("thermometer", comment: "")) 3"
+        deviceAndTimeSeries3.deviceName = "\(NSLocalizedString("thermometer", comment: "")) 3"
         deviceAndTimeSeries3.temperatureThresholdHigh = 10.5
         deviceAndTimeSeries3.temperatureThresholdLow = 0.5
         deviceAndTimeSeries3.lastTelemetryTemperature = 5.3
         deviceAndTimeSeries3.lastTelemetryHumidity = 55.5
         deviceAndTimeSeries3.isAlarmActive = false
         deviceAndTimeSeries3.isMaintenanceActive = false
+        deviceAndTimeSeries1.isDeviceActive = true
         deviceAndTimeSeries3.listTelemetryToDraw = [5.5, 4.7, 6.6, 6.8, 4.7, 6.6, 6.8, 8.4]
         demo.append(deviceAndTimeSeries3)
         return demo
@@ -52,94 +55,153 @@ struct Provider: IntentTimelineProvider {
         let demoDevices = snapShotDevices()
             let entry = SimpleEntry(date: Date(), devices: demoDevices, alarmCount: alarmCount)
         completion(entry)
+        return
     }
 
     func getTimeline(for configuration: SelectDeviceIntent, in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         var entries: [SimpleEntry] = []
+        let currentDate = Date()
+        let futureDate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate)!
+        var devicesDef: [DeviceAndTimeSeries] = []
+        var deviceAndTimeSeriesDef = DeviceAndTimeSeries()
+        deviceAndTimeSeriesDef.id = "12345"
+        deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+        deviceAndTimeSeriesDef.temperatureThresholdHigh = 0.0
+        deviceAndTimeSeriesDef.temperatureThresholdLow = 0.0
+        deviceAndTimeSeriesDef.lastTelemetryTemperature = 0.0
+        deviceAndTimeSeriesDef.lastTelemetryHumidity = 0.0
+        deviceAndTimeSeriesDef.isAlarmActive = false
+        deviceAndTimeSeriesDef.isMaintenanceActive = true
+        deviceAndTimeSeriesDef.isDeviceActive = true
+        deviceAndTimeSeriesDef.listTelemetryToDraw = [0.0, 0.0]
+//        devicesDef.append(deviceAndTimeSeriesDef)
         // ////////////////////////////////////////////
         var ids: [String] = []
         if configuration.device != nil {
             for i in 0 ..< configuration.device!.count {
                 ids.append("\(configuration.device![i].identifier!)")
             }
-            // /////////////////////////////////////////////
-            // #############################################
             TBRest.getListDevicesAndTS (deviceIds: ids) { error, success, devices, aCount  in
-                if let error = error {
-                    return
-                }
                 if success {
-                    let successDate = Date()
                     let devices = devices
                     let count = aCount
-                    
-                    let entry = SimpleEntry(date: successDate, devices: devices!, alarmCount: count!)
+                    let entry = SimpleEntry(date: currentDate, devices: devices!, alarmCount: count!)
                     entries.append(entry)
-                    
-                    let timeline = Timeline(entries: entries, policy: .atEnd)
+                    let timeline = Timeline(entries: entries, policy: .after(futureDate))
                     completion(timeline)
                     return
-                } else {
+                } // OK
+                else {
                     TBRest.getNewToken{ error, success, str in
                         if success, let tokenResp = str{
                             if tokenResp == "no_token"{
-                                let successDate = Date()
-                                var devicesDef: [DeviceAndTimeSeries] = []
-                                var deviceAndTimeSeriesDef = DeviceAndTimeSeries()
-                                deviceAndTimeSeriesDef.id = "222"
-                                deviceAndTimeSeriesDef.name = "\(NSLocalizedString("user_not_logged", comment: ""))"
-                                deviceAndTimeSeriesDef.temperatureThresholdHigh = 0.0
-                                deviceAndTimeSeriesDef.temperatureThresholdLow = 0.0
-                                deviceAndTimeSeriesDef.lastTelemetryTemperature = 0.0
-                                deviceAndTimeSeriesDef.lastTelemetryHumidity = 0.0
-                                deviceAndTimeSeriesDef.isAlarmActive = false
-                                deviceAndTimeSeriesDef.isMaintenanceActive = true
-                                deviceAndTimeSeriesDef.listTelemetryToDraw = [0.0, 0.0]
+                                deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("user_not_logged", comment: ""))"
                                 devicesDef.append(deviceAndTimeSeriesDef)
-                                
-                                let entry = SimpleEntry(date: successDate, devices: devicesDef, alarmCount: -100) // -100 code not token- not logged
+                                let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -100) // -100 code not token- not logged
                                 entries.append(entry)
-                                
-                                let timeline = Timeline(entries: entries, policy: .atEnd)
+                                let timeline = Timeline(entries: entries, policy: .after(futureDate))
                                 completion(timeline)
                                 return
-                            }
-                        }
+                            } // NOT_LOGGED
+                            else {
+                                deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                                devicesDef.append(deviceAndTimeSeriesDef)
+                                let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                                entries.append(entry)
+                                let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                                completion(timeline)
+                                return
+                            } // NOT_CONNECTED
+                        } // always success
+                        else { //just in case
+                            deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                            devicesDef.append(deviceAndTimeSeriesDef)
+                            let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                            entries.append(entry)
+                            let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                            completion(timeline)
+                            return
+                        } // NOT_CONNECTED
                     }
-                    return
                 }
-            } //end get devices ids
-        } // end if count != nil
+                
+            } //end getListDevicesAndTS
+        } // end if configuration.device != nil
         else {
             TBRest.getNewToken{ error, success, str in
                 if success, let tokenResp = str{
                     if tokenResp == "no_token"{
-                        let successDate = Date()
-                        var devicesDef: [DeviceAndTimeSeries] = []
-                        var deviceAndTimeSeriesDef = DeviceAndTimeSeries()
-                        deviceAndTimeSeriesDef.id = "222"
-                        deviceAndTimeSeriesDef.name = "\(NSLocalizedString("user_not_logged", comment: ""))"
-                        deviceAndTimeSeriesDef.temperatureThresholdHigh = 0.0
-                        deviceAndTimeSeriesDef.temperatureThresholdLow = 0.0
-                        deviceAndTimeSeriesDef.lastTelemetryTemperature = 0.0
-                        deviceAndTimeSeriesDef.lastTelemetryHumidity = 0.0
-                        deviceAndTimeSeriesDef.isAlarmActive = false
-                        deviceAndTimeSeriesDef.isMaintenanceActive = true
-                        deviceAndTimeSeriesDef.listTelemetryToDraw = [0.0, 0.0]
+                        deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("user_not_logged", comment: ""))"
                         devicesDef.append(deviceAndTimeSeriesDef)
-                        
-                        let entry = SimpleEntry(date: successDate, devices: devicesDef, alarmCount: -100) // -100 code not token- not logged
+                        let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -100) // -100 code not token- not logged
                         entries.append(entry)
-                        
-                        let timeline = Timeline(entries: entries, policy: .atEnd)
+                        let timeline = Timeline(entries: entries, policy: .after(futureDate))
                         completion(timeline)
                         return
+                    } // NOT_LOGGED
+                    else if tokenResp == "error_token" {
+                        deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                        devicesDef.append(deviceAndTimeSeriesDef)
+                        let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                        entries.append(entry)
+                        let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                        completion(timeline)
+                        return
+                    } // NOT_CONNECTED
+                    else {
+                        TBRest.getDefaultListDevices(nMax: 3, strToken: tokenResp) { error, success, devices, cAlarms  in
+                            if error != nil {
+                                deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                                devicesDef.append(deviceAndTimeSeriesDef)
+                                let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                                entries.append(entry)
+                                let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                                completion(timeline)
+                                return
+                            } // NOT_CONNECTED
+                            if success {
+                                let devices1 = devices
+                                if devices1 != nil && cAlarms != nil {
+                                    let entry = SimpleEntry(date: currentDate, devices: devices1!, alarmCount: cAlarms!)
+                                    entries.append(entry)
+                                    let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                                    completion(timeline)
+                                    return
+                                } // OK
+                                else{
+                                    deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                                    devicesDef.append(deviceAndTimeSeriesDef)
+                                    let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                                    entries.append(entry)
+                                    let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                                    completion(timeline)
+                                    return
+                                } // NOT_CONNECTED
+                            }
+                            else {
+                                deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                                devicesDef.append(deviceAndTimeSeriesDef)
+                                let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                                entries.append(entry)
+                                let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                                completion(timeline)
+                                return
+                            } // NOT_CONNECTED
+                        }
                     }
-                }
-            }
-            return
+                } // End get newToken -> Always success
+                else { // just in case
+                    deviceAndTimeSeriesDef.deviceName = "\(NSLocalizedString("not_connected", comment: ""))"
+                    devicesDef.append(deviceAndTimeSeriesDef)
+                    let entry = SimpleEntry(date: currentDate, devices: devicesDef, alarmCount: -200) // -200 code void
+                    entries.append(entry)
+                    let timeline = Timeline(entries: entries, policy: .after(futureDate))
+                    completion(timeline)
+                    return
+                } // NOT_CONNECTED
+            } // End getNewToken
         }
-        // #############################################
+        
     }
     
 
@@ -163,7 +225,7 @@ struct AppWidgetEntryView : View {
                 let frameSize = geometry.frame(in: .local)
                 let boxPercentWidth: CGFloat = frameSize.width  / 100
                 let boxPercentHeight: CGFloat = frameSize.height  / 100
-                let rowHeight: CGFloat = boxPercentHeight * (100 / 8)
+                let rowHeight: CGFloat = boxPercentHeight * (100 / 8)//8 Medium 16 Large V3 from medium
                 let fontSize1: CGFloat = boxPercentWidth * 4
                 let fontSizeBell2: CGFloat = boxPercentWidth * 2.3
                 let fontSizeBell1: CGFloat = boxPercentWidth * 3.2
@@ -210,6 +272,16 @@ struct AppWidgetEntryView : View {
                                     .clipped()
                                 if entry.alarmCount == -100 {
                                     Text(Image(systemName: "person.crop.circle.fill.badge.exclamationmark")).font(.system(size: fontSizeBell1)).foregroundColor(entry.alarmCount > 0 ? Color.red : gray1)
+                                        .frame(width: boxPercentWidth * 6, height: boxPercentWidth * 6)
+                                    Text("")
+                                        .foregroundColor(entry.alarmCount > 0 ? Color.red : gray1)
+                                        .font(.system(size: fontSize1))
+                                        .bold()
+                                        .fixedSize()
+                                        .frame(width: boxPercentWidth * 8, height: rowHeight, alignment: .leading)
+                                        .clipped()
+                                }else if entry.alarmCount == -200 {
+                                    Text(Image(systemName: "icloud.slash")).font(.system(size: fontSizeBell1)).foregroundColor(entry.alarmCount > 0 ? Color.red : gray1)
                                         .frame(width: boxPercentWidth * 6, height: boxPercentWidth * 6)
                                     
                                     Text("")
@@ -266,41 +338,52 @@ struct AppWidgetEntryView : View {
                         HStack(spacing: 0){
                             VStack(spacing: 0){
                                 HStack(spacing: 0){
-                                    Text("_")
-                                        .foregroundColor(Color.black)
-                                        .font(.system(size: fontSize1))
-                                        .truncationMode(.middle)
-                                        .frame(width: boxPercentWidth * 4, height: rowHeight, alignment: .leading)
-                                        .clipped()
-                                    Text(device.name)
-                                        .foregroundColor(Color(red: 210 / 255, green: 210 / 255, blue: 210 / 255))
-                                        .font(.system(size: fontSize1))
-                                        .bold()
-                                        .truncationMode(.middle)
-                                        .frame(width: boxPercentWidth * 42, height: rowHeight, alignment: .leading)
-                                        .clipped()
-                                    if device.isMaintenanceActive! {
-                                        Text("").foregroundColor(Color.black).frame(width: boxPercentWidth * 4, height: rowHeight)
-                                    }else{
-                                        //########################################
-                                        Image(systemName: "bell.fill")
-                                            .foregroundColor(device.isAlarmActive! ? Color.red : Color.black)
-                                            .font(.system(size: fontSizeBell2))
-                                            .fixedSize()
-                                            .frame(width: boxPercentWidth * 4, height: rowHeight, alignment: .leading)
-                                            .clipped()
-                                        //########################################
-                                    }
-                                }.frame(maxHeight: rowHeight)
-                                HStack(spacing: 0){
-                                    if device.isMaintenanceActive! {
+//                                    Text("_")
+                                    if device.isMaintenanceActive {
                                         Text("_")
                                             .foregroundColor(Color.black)
                                             .font(.system(size: fontSize1))
                                             .truncationMode(.middle)
                                             .frame(width: boxPercentWidth * 6, height: rowHeight, alignment: .leading)
                                             .clipped()
-                                        Text("under_maintenance").foregroundColor(Color.orange).font(.system(size: fontSize1)).bold().frame(width: boxPercentWidth * 48, height: rowHeight * 2, alignment: .leading)
+                                    } else{
+                                        Image(systemName: "circle.fill")
+                                            .foregroundColor(device.isDeviceActive ? Color.green : Color.red)
+                                            .font(.system(size: fontSizeBell2))
+                                            .fixedSize()
+                                            .frame(width: boxPercentWidth * 6, height: rowHeight, alignment: .trailing)
+                                            .clipped()
+                                    }
+                                    Text(device.deviceName)
+                                        .foregroundColor(Color(red: 210 / 255, green: 210 / 255, blue: 210 / 255))
+                                        .font(.system(size: fontSize1))
+                                        .bold()
+                                        .truncationMode(.middle)
+                                        .frame(width: boxPercentWidth * 40, height: rowHeight, alignment: .leading)
+                                        .clipped()
+                                    if device.isMaintenanceActive {
+                                        Text("").foregroundColor(Color.black).frame(width: boxPercentWidth * 4, height: rowHeight)
+                                    }else{
+                                        //########################################
+                                        Image(systemName: "bell.fill")
+                                            .foregroundColor(device.isAlarmActive ? Color.red : Color.black)
+                                            .font(.system(size: fontSizeBell2))
+                                            .fixedSize()
+                                            .frame(width: boxPercentWidth * 4, height: rowHeight * 0.8, alignment: .topLeading) // * 0.8 to left padding on top
+                                            .clipped()
+                                        //########################################
+                                    }
+                                }.frame(maxHeight: rowHeight)
+                                HStack(spacing: 0){
+                                    if device.isMaintenanceActive {
+                                        Text("_")
+                                            .foregroundColor(Color.black)
+                                            .font(.system(size: fontSize1))
+                                            .truncationMode(.middle)
+                                            .frame(width: boxPercentWidth * 8, height: rowHeight, alignment: .leading)
+                                            .clipped()
+                                        // < -99 code -100 0r -200 not logged or not connected
+                                        Text("under_maintenance").foregroundColor(entry.alarmCount < -99 ? Color.black : Color.orange).font(.system(size: fontSize1)).bold().frame(width: boxPercentWidth * 46, height: rowHeight * 2, alignment: .leading)
                                     }else{
                                         //######################################
                                         Image(systemName: "thermometer")
@@ -309,17 +392,24 @@ struct AppWidgetEntryView : View {
                                             .fixedSize()
                                             .frame(width: boxPercentWidth * 7, height: rowHeight, alignment: .trailing)
                                             .clipped()
-                                        let tempe = String(format: "%.1f", device.lastTelemetryTemperature!)
-                                        let valTempe: String = device.lastTelemetryTemperature! > 0 ? "-": ""
+                                        let tempe = String(format: "%.1f", device.lastTelemetryTemperature) + "°C"
+                                        let valTempe: String = device.lastTelemetryTemperature > 0 ? "-": ""
                                         HStack(spacing: 0){
                                             Text("\(valTempe)")
                                                 .foregroundColor(Color.black)
                                                 .font(.system(size: fontSize3))
                                                 .bold()
-                                            Text(" \(tempe)")
-                                                .foregroundColor(Color.orange)
-                                                .font(.system(size: fontSize3))
-                                                .bold()
+                                            if device.lastTelemetryTemperature < -99000 {//code null -99999
+                                                Text(" ")
+                                                    .foregroundColor(Color.orange)
+                                                    .font(.system(size: fontSize3))
+                                                    .bold()
+                                            } else{
+                                                Text(" \(tempe)")
+                                                    .foregroundColor(Color.orange)
+                                                    .font(.system(size: fontSize3))
+                                                    .bold()
+                                            }
                                             Spacer()
                                         }.frame(width: boxPercentWidth * 23, height: rowHeight).background(Color.black)
                                         Image(systemName: "drop.fill")
@@ -328,30 +418,40 @@ struct AppWidgetEntryView : View {
                                             .fixedSize()
                                             .frame(width: boxPercentWidth * 4, height: rowHeight, alignment: .trailing)
                                             .clipped()
-                                        let humi = String(format: "%.1f", device.lastTelemetryHumidity!)
-                                        Text(" \(humi)")
-                                            .foregroundColor(Color.blue)
-                                            .font(.system(size: fontSize1))
-                                            .bold()
-                                            .fixedSize()
-                                            .frame(width: boxPercentWidth * 16, height: rowHeight, alignment: .leading)
-                                            .clipped()
+                                        let humi = String(format: "%.1f", device.lastTelemetryHumidity) + "%"
+                                        if device.lastTelemetryHumidity < -99000 {// -99999 code null
+                                            Text(" ")
+                                                .foregroundColor(Color.blue)
+                                                .font(.system(size: fontSize1))
+                                                .bold()
+                                                .fixedSize()
+                                                .frame(width: boxPercentWidth * 16, height: rowHeight, alignment: .leading)
+                                                .clipped()
+                                        } else{
+                                            Text(" \(humi)")
+                                                .foregroundColor(Color.blue)
+                                                .font(.system(size: fontSize1))
+                                                .bold()
+                                                .fixedSize()
+                                                .frame(width: boxPercentWidth * 16, height: rowHeight, alignment: .leading)
+                                                .clipped()
+                                        }
                                         //###################################
                                     }
                                 }.frame(maxHeight: rowHeight)
                             }.frame(width: boxPercentWidth * 50)
                             HStack(spacing: 0){
-                                if device.isMaintenanceActive! {
-                                    if entry.alarmCount == -100{
+                                if device.isMaintenanceActive {
+                                    // for code -100 and -200
+                                    if entry.alarmCount < -99 {
                                         Text("")
                                     } else {
                                     Image(uiImage: UIImage(named: "tools")!)
                                         .resizable()
                                     }
                                 } else {
-                                    ChartMaker(thresholdHigh: device.temperatureThresholdHigh!, thresholdLow: device.temperatureThresholdLow!, dataSet: device.listTelemetryToDraw!, isAlarmActive: device.isAlarmActive!)
+                                    ChartMaker(thresholdHigh: device.temperatureThresholdHigh, thresholdLow: device.temperatureThresholdLow, dataSet: device.listTelemetryToDraw, isAlarmActive: device.isAlarmActive)
                                 }
-                                
                             }.frame(width: boxPercentWidth * 48, height: rowHeight * 2)
                             Spacer()
                         }.frame(width: frameSize.width, height: rowHeight * 2)
@@ -368,7 +468,7 @@ struct AppWidgetEntryView : View {
                 let frameSize = geometry.frame(in: .local)
                 let boxPercentWidth: CGFloat = frameSize.width  / 100
                 let boxPercentHeight: CGFloat = frameSize.height  / 100
-                let rowHeight: CGFloat = boxPercentHeight * (100 / 16)
+                let rowHeight: CGFloat = boxPercentHeight * (100 / 16)//8 Medium 16 Large V3 from medium
                 let fontSize1: CGFloat = boxPercentWidth * 4
                 let fontSizeBell2: CGFloat = boxPercentWidth * 2.3
                 let fontSizeBell1: CGFloat = boxPercentWidth * 3.2
@@ -415,6 +515,16 @@ struct AppWidgetEntryView : View {
                                     .clipped()
                                 if entry.alarmCount == -100 {
                                     Text(Image(systemName: "person.crop.circle.fill.badge.exclamationmark")).font(.system(size: fontSizeBell1)).foregroundColor(entry.alarmCount > 0 ? Color.red : gray1)
+                                        .frame(width: boxPercentWidth * 6, height: boxPercentWidth * 6)
+                                    Text("")
+                                        .foregroundColor(entry.alarmCount > 0 ? Color.red : gray1)
+                                        .font(.system(size: fontSize1))
+                                        .bold()
+                                        .fixedSize()
+                                        .frame(width: boxPercentWidth * 8, height: rowHeight, alignment: .leading)
+                                        .clipped()
+                                }else if entry.alarmCount == -200 {
+                                    Text(Image(systemName: "icloud.slash")).font(.system(size: fontSizeBell1)).foregroundColor(entry.alarmCount > 0 ? Color.red : gray1)
                                         .frame(width: boxPercentWidth * 6, height: boxPercentWidth * 6)
                                     
                                     Text("")
@@ -471,41 +581,52 @@ struct AppWidgetEntryView : View {
                         HStack(spacing: 0){
                             VStack(spacing: 0){
                                 HStack(spacing: 0){
-                                    Text("_")
-                                        .foregroundColor(Color.black)
-                                        .font(.system(size: fontSize1))
-                                        .truncationMode(.middle)
-                                        .frame(width: boxPercentWidth * 4, height: rowHeight, alignment: .leading)
-                                        .clipped()
-                                    Text(device.name)
-                                        .foregroundColor(Color(red: 210 / 255, green: 210 / 255, blue: 210 / 255))
-                                        .font(.system(size: fontSize1))
-                                        .bold()
-                                        .truncationMode(.middle)
-                                        .frame(width: boxPercentWidth * 42, height: rowHeight, alignment: .leading)
-                                        .clipped()
-                                    if device.isMaintenanceActive! {
-                                        Text("").foregroundColor(Color.black).frame(width: boxPercentWidth * 4, height: rowHeight)
-                                    }else{
-                                        //########################################
-                                        Image(systemName: "bell.fill")
-                                            .foregroundColor(device.isAlarmActive! ? Color.red : Color.black)
-                                            .font(.system(size: fontSizeBell2))
-                                            .fixedSize()
-                                            .frame(width: boxPercentWidth * 4, height: rowHeight, alignment: .leading)
-                                            .clipped()
-                                        //########################################
-                                    }
-                                }.frame(maxHeight: rowHeight)
-                                HStack(spacing: 0){
-                                    if device.isMaintenanceActive! {
+//                                    Text("_")
+                                    if device.isMaintenanceActive {
                                         Text("_")
                                             .foregroundColor(Color.black)
                                             .font(.system(size: fontSize1))
                                             .truncationMode(.middle)
                                             .frame(width: boxPercentWidth * 6, height: rowHeight, alignment: .leading)
                                             .clipped()
-                                        Text("under_maintenance").foregroundColor(Color.orange).font(.system(size: fontSize1)).bold().frame(width: boxPercentWidth * 48, height: rowHeight * 2, alignment: .leading)
+                                    } else{
+                                        Image(systemName: "circle.fill")
+                                            .foregroundColor(device.isDeviceActive ? Color.green : Color.red)
+                                            .font(.system(size: fontSizeBell2))
+                                            .fixedSize()
+                                            .frame(width: boxPercentWidth * 6, height: rowHeight, alignment: .trailing)
+                                            .clipped()
+                                    }
+                                    Text(device.deviceName)
+                                        .foregroundColor(Color(red: 210 / 255, green: 210 / 255, blue: 210 / 255))
+                                        .font(.system(size: fontSize1))
+                                        .bold()
+                                        .truncationMode(.middle)
+                                        .frame(width: boxPercentWidth * 40, height: rowHeight, alignment: .leading)
+                                        .clipped()
+                                    if device.isMaintenanceActive {
+                                        Text("").foregroundColor(Color.black).frame(width: boxPercentWidth * 4, height: rowHeight)
+                                    }else{
+                                        //########################################
+                                        Image(systemName: "bell.fill")
+                                            .foregroundColor(device.isAlarmActive ? Color.red : Color.black)
+                                            .font(.system(size: fontSizeBell2))
+                                            .fixedSize()
+                                            .frame(width: boxPercentWidth * 4, height: rowHeight * 0.8, alignment: .topLeading) // * 0.8 to left padding on top
+                                            .clipped()
+                                        //########################################
+                                    }
+                                }.frame(maxHeight: rowHeight)
+                                HStack(spacing: 0){
+                                    if device.isMaintenanceActive {
+                                        Text("_")
+                                            .foregroundColor(Color.black)
+                                            .font(.system(size: fontSize1))
+                                            .truncationMode(.middle)
+                                            .frame(width: boxPercentWidth * 8, height: rowHeight, alignment: .leading)
+                                            .clipped()
+                                        // < -99 code -100 0r -200 not logged or not connected
+                                        Text("under_maintenance").foregroundColor(entry.alarmCount < -99 ? Color.black : Color.orange).font(.system(size: fontSize1)).bold().frame(width: boxPercentWidth * 46, height: rowHeight * 2, alignment: .leading)
                                     }else{
                                         //######################################
                                         Image(systemName: "thermometer")
@@ -514,17 +635,24 @@ struct AppWidgetEntryView : View {
                                             .fixedSize()
                                             .frame(width: boxPercentWidth * 7, height: rowHeight, alignment: .trailing)
                                             .clipped()
-                                        let tempe = String(format: "%.1f", device.lastTelemetryTemperature!)
-                                        let valTempe: String = device.lastTelemetryTemperature! > 0 ? "-": ""
+                                        let tempe = String(format: "%.1f", device.lastTelemetryTemperature) + "°C"
+                                        let valTempe: String = device.lastTelemetryTemperature > 0 ? "-": ""
                                         HStack(spacing: 0){
                                             Text("\(valTempe)")
                                                 .foregroundColor(Color.black)
                                                 .font(.system(size: fontSize3))
                                                 .bold()
-                                            Text(" \(tempe)")
-                                                .foregroundColor(Color.orange)
-                                                .font(.system(size: fontSize3))
-                                                .bold()
+                                            if device.lastTelemetryTemperature < -99000 {//code null -99999
+                                                Text(" ")
+                                                    .foregroundColor(Color.orange)
+                                                    .font(.system(size: fontSize3))
+                                                    .bold()
+                                            } else{
+                                                Text(" \(tempe)")
+                                                    .foregroundColor(Color.orange)
+                                                    .font(.system(size: fontSize3))
+                                                    .bold()
+                                            }
                                             Spacer()
                                         }.frame(width: boxPercentWidth * 23, height: rowHeight).background(Color.black)
                                         Image(systemName: "drop.fill")
@@ -533,30 +661,40 @@ struct AppWidgetEntryView : View {
                                             .fixedSize()
                                             .frame(width: boxPercentWidth * 4, height: rowHeight, alignment: .trailing)
                                             .clipped()
-                                        let humi = String(format: "%.1f", device.lastTelemetryHumidity!)
-                                        Text(" \(humi)")
-                                            .foregroundColor(Color.blue)
-                                            .font(.system(size: fontSize1))
-                                            .bold()
-                                            .fixedSize()
-                                            .frame(width: boxPercentWidth * 16, height: rowHeight, alignment: .leading)
-                                            .clipped()
+                                        let humi = String(format: "%.1f", device.lastTelemetryHumidity) + "%"
+                                        if device.lastTelemetryHumidity < -99000 {// -99999 code null
+                                            Text(" ")
+                                                .foregroundColor(Color.blue)
+                                                .font(.system(size: fontSize1))
+                                                .bold()
+                                                .fixedSize()
+                                                .frame(width: boxPercentWidth * 16, height: rowHeight, alignment: .leading)
+                                                .clipped()
+                                        } else{
+                                            Text(" \(humi)")
+                                                .foregroundColor(Color.blue)
+                                                .font(.system(size: fontSize1))
+                                                .bold()
+                                                .fixedSize()
+                                                .frame(width: boxPercentWidth * 16, height: rowHeight, alignment: .leading)
+                                                .clipped()
+                                        }
                                         //###################################
                                     }
                                 }.frame(maxHeight: rowHeight)
                             }.frame(width: boxPercentWidth * 50)
                             HStack(spacing: 0){
-                                if device.isMaintenanceActive! {
-                                    if entry.alarmCount == -100{
+                                if device.isMaintenanceActive {
+                                    // for code -100 and -200
+                                    if entry.alarmCount < -99 {
                                         Text("")
                                     } else {
                                     Image(uiImage: UIImage(named: "tools")!)
                                         .resizable()
                                     }
                                 } else {
-                                    ChartMaker(thresholdHigh: device.temperatureThresholdHigh!, thresholdLow: device.temperatureThresholdLow!, dataSet: device.listTelemetryToDraw!, isAlarmActive: device.isAlarmActive!)
+                                    ChartMaker(thresholdHigh: device.temperatureThresholdHigh, thresholdLow: device.temperatureThresholdLow, dataSet: device.listTelemetryToDraw, isAlarmActive: device.isAlarmActive)
                                 }
-                                
                             }.frame(width: boxPercentWidth * 48, height: rowHeight * 2)
                             Spacer()
                         }.frame(width: frameSize.width, height: rowHeight * 2)
@@ -566,7 +704,8 @@ struct AppWidgetEntryView : View {
 
                     Spacer()
                 }.background(Color.black)
-            }// end default
+            }
+               // end default
             } // end switch family
     } // end of var body: some View
 }

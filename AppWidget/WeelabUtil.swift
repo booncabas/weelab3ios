@@ -7,7 +7,7 @@ struct Utils: Codable {
     static func daysOfWeek2() -> [String] {
         var dateComponent = DateComponents()
         var currentDate = Date()
-        let date = Date()
+//        let date = Date()
         var resp: [String] = []
         dateComponent.day = 1
         for _ in 0...6{
@@ -48,7 +48,8 @@ struct Utils: Codable {
 //            return nil
 //        }
 //        return name
-        return "b72b2570-69a2-11ed-95fe-4732c9ea5bca"
+        return "6498d490-62ba-11ed-9580-699a520459db"
+//        return "b72b2570-69a2-11ed-95fe-4732c9ea5bca"// demo
     }
 
     static func getRefreshToken() -> String? {
@@ -59,7 +60,10 @@ struct Utils: Codable {
 //        }
 //        return name
         
-        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkZW1vQHdlZWxhYi5pbyIsInVzZXJJZCI6ImU4ZWZjNzAwLTY5YTItMTFlZC05NWZlLTQ3MzJjOWVhNWJjYSIsInNjb3BlcyI6WyJSRUZSRVNIX1RPS0VOIl0sImlzcyI6InRoaW5nc2JvYXJkLmlvIiwiaWF0IjoxNjgxNzM3ODc2LCJleHAiOjE2ODIzNDI2NzYsImlzUHVibGljIjpmYWxzZSwianRpIjoiYWI3OWIyODItOTY1Mi00MmRkLTg2YmEtYmZiZTA2MjA1MWEzIn0.g4Csz1UE9RQoj9wVqMrZ6mqHmhpWvA7psd5A3zutu3IrTYwLjHeTv5zfN_yURl71TtsfuC__cLoPXjcZrO04fg"
+        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhdXRvbGFiQHdlZWxhYi5pbyIsInVzZXJJZCI6IjA4YjZmZmMwLWYwNjQtMTFlZC1hNTM3LWQ5ZWJhZjYzYTA4ZCIsInNjb3BlcyI6WyJSRUZSRVNIX1RPS0VOIl0sImlzcyI6InRoaW5nc2JvYXJkLmlvIiwiaWF0IjoxNjg2NjcyNTQ3LCJleHAiOjE2ODcyNzczNDcsImlzUHVibGljIjpmYWxzZSwianRpIjoiNTA5MWJmNWUtNWU5YS00MjEzLWI2NzctYTA4N2VjM2M0MjIxIn0.9coS4tbuy6soTkioBlc136Kf2EON-6Zahac67Oqb8ez5InQDnL6NoD-HjD7L4y7_67U8HJz6kWAflyZYivOgUQ"
+//        return "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkZW1vQHdlZWxhYi5pbyIsInVzZXJJZCI6ImU4ZWZjNzAwLTY5YTItMTFlZC05NWZlLTQ3MzJjOWVhNWJjYSIsInNjb3BlcyI6WyJSRUZSRVNIX1RPS0VOIl0sImlzcyI6InRoaW5nc2JvYXJkLmlvIiwiaWF0IjoxNjg1NzEyMDQ3LCJleHAiOjE2ODYzMTY4NDcsImlzUHVibGljIjpmYWxzZSwianRpIjoiZjBjZWVkZWUtYjNiMS00YWJlLWE2NTQtNTcxOTQ4ZGY5YjlhIn0.RpvSVr6P3ZEvW73pqT7ZbGITtGbaRy_GMDvM9-6MG8NmdjyQpc4sO1NbjVEb1WSSsH_OaBeQm4SormoVGeYguw"
+
+        //        return ""
     }
     
     static func setRefreshToken(refreshToken: String) {

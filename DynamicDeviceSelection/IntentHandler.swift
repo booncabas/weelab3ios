@@ -12,16 +12,24 @@ class IntentHandler: INExtension, SelectDeviceIntentHandling {
     func provideDeviceOptionsCollection(for intent: SelectDeviceIntent,
                                         with completion: @escaping (INObjectCollection<Device>?, Error?) -> Void) {
         // *********************************************************
-        TBRest.getListDevices { error, success, devices  in
+        TBRest.getListDevicesNamesAndIds { error, success, devices  in
             if success {
                 var list: [Device] = []
                 let devices = devices
-                for i in 0...devices!.count-1 {
-                    let dev = Device(identifier: devices![i].id, display: devices![i].name)
-                    list.append(dev)
+                if let size = devices?.count{
+                    if size > 0 {
+                        for i in 0...size - 1 {
+                            let dev = Device(identifier: devices![i].id, display: devices![i].deviceName)
+                            list.append(dev)
+                        }
+                    }
                 }
-                let collection = INObjectCollection(items: list)
-                completion(collection, nil)
+                if list.count > 0 {
+                    let collection = INObjectCollection(items: list)
+                    completion(collection, nil)
+                }else{
+                    completion(nil, nil)
+                }
             } else{
                 completion(nil, nil)
             }
@@ -34,12 +42,16 @@ class IntentHandler: INExtension, SelectDeviceIntentHandling {
         var comp: Bool = false
         // **********************************************************
         // boon n Max = to AppWidgetIntent size medium
-        TBRest.getDefaultListDevices(nMax: 3) { error, success, devices  in
+        TBRest.getDefaultListDevicesNamesAndIds(nMax: 3) { error, success, devices  in
             if success {
                 let devices = devices
-                for i in 0...devices!.count-1 {
-                    let dev = Device(identifier: devices![i].id, display: devices![i].name)
-                    list.append(dev)
+                if let size = devices?.count{
+                    if size > 0 {
+                        for i in 0...size - 1 {
+                            let dev = Device(identifier: devices![i].id, display: devices![i].deviceName)
+                            list.append(dev)
+                        }
+                    }
                 }
                 comp = true
             }

@@ -16,8 +16,20 @@ struct ChartMaker: View {
                 var path = Path()
                 let maxX: CGFloat = CGFloat(Float(frameSize.width * 0.94))
                 let maxY: CGFloat = CGFloat(Float(frameSize.height))
-                var THHigh: CGFloat = thresholdHigh
-                var THLow: CGFloat = thresholdLow
+                var THHigh: CGFloat
+                var THLow: CGFloat
+                if thresholdHigh == -99999{
+                    THHigh = dataSet.max()!
+                } else {
+                    THHigh = thresholdHigh
+                }
+                if thresholdLow == -99999{
+                    THLow = dataSet.min()!
+                } else {
+                    THLow = thresholdLow
+                }
+                
+                
                 let lineColor: Color
                 if (isAlarmActive){
                     lineColor = Color(red: 255 / 255, green: 0 / 255, blue: 0 / 255)
@@ -63,43 +75,57 @@ struct ChartMaker: View {
                     with: .color(lineColor),
                     style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
                 )
-                // #########################################
-                ///Line High
-                var path2 = Path()
-                path2.move(to: CGPoint(x: CGFloat(0), y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THHigh) * sizeUnit))) ))
-                path2.addLine(to: CGPoint(x: maxX, y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THHigh) * sizeUnit))) ))
-                var style = StrokeStyle(lineWidth: 1)
-                style.dash = [2, 3]
-                context.stroke(
-                    path2,
-                    with: .color(Color.gray),
-                    style: style
-                )
-                // #########################################
-                ///Tip High
-                context.draw(Text("➤").bold().foregroundColor(Color.gray).font(.system(size: fontSize1)), in: CGRect(x: maxX - (maxX * 0.035), y: CGFloat(maxY - (maxY * 0.13) - (borderPercentage + ( -(limitMin - THHigh) * sizeUnit))), width: boxPercentWidth * 3, height: maxY * 0.3))
-                // #########################################
-                ///Line Low
-                var path3 = Path()
-                path3.move(to: CGPoint(x: CGFloat(0), y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THLow) * sizeUnit))) ))
-                path3.addLine(to: CGPoint(x: maxX, y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THLow) * sizeUnit))) ))
-                context.stroke(
-                    path3,
-                    with: .color(Color.gray),
-                    style: style
-                )
-                // #########################################
-                ///Tip Low
-                context.draw(Text("➤").bold().foregroundColor(Color.gray).font(.system(size: fontSize1)), in: CGRect(x: maxX - (maxX * 0.035), y: CGFloat(maxY - (maxY * 0.13) - (borderPercentage + ( -(limitMin - THLow) * sizeUnit))), width: boxPercentWidth * 3, height: maxY * 0.3))
+                var needTHHigh: Bool = true
+                var needTHLow: Bool = true
+                if thresholdHigh == -99999 {
+                    needTHHigh = false
+                }
+                if thresholdLow == -99999 {
+                    needTHLow = false
+                }
+                if needTHHigh {
+                    // #########################################
+                    ///Line High
+                    var path2 = Path()
+                    path2.move(to: CGPoint(x: CGFloat(0), y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THHigh) * sizeUnit))) ))
+                    path2.addLine(to: CGPoint(x: maxX, y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THHigh) * sizeUnit))) ))
+                    var style1 = StrokeStyle(lineWidth: 1)
+                    style1.dash = [2, 3]
+                    context.stroke(
+                        path2,
+                        with: .color(Color.gray),
+                        style: style1
+                    )
+                    // #########################################
+                    ///Tip High
+                    context.draw(Text("➤").bold().foregroundColor(Color.gray).font(.system(size: fontSize1)), in: CGRect(x: maxX - (maxX * 0.035), y: CGFloat(maxY - (maxY * 0.13) - (borderPercentage + ( -(limitMin - THHigh) * sizeUnit))), width: boxPercentWidth * 3, height: maxY * 0.3))
+                    // #########################################
+                }
+                if needTHLow {
+                    ///Line Low
+                    var path3 = Path()
+                    path3.move(to: CGPoint(x: CGFloat(0), y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THLow) * sizeUnit))) ))
+                    path3.addLine(to: CGPoint(x: maxX, y: CGFloat(maxY - (borderPercentage + ( -(limitMin - THLow) * sizeUnit))) ))
+                    var style2 = StrokeStyle(lineWidth: 1)
+                    style2.dash = [2, 3]
+                    context.stroke(
+                        path3,
+                        with: .color(Color.gray),
+                        style: style2
+                    )
+                    // #########################################
+                    ///Tip Low
+                    context.draw(Text("➤").bold().foregroundColor(Color.gray).font(.system(size: fontSize1)), in: CGRect(x: maxX - (maxX * 0.035), y: CGFloat(maxY - (maxY * 0.13) - (borderPercentage + ( -(limitMin - THLow) * sizeUnit))), width: boxPercentWidth * 3, height: maxY * 0.3))
+                }
                 // #########################################
                 ///Line zero
-                var path4 = Path()
-                path4.move(to: CGPoint(x: CGFloat(0), y: CGFloat(maxY - (borderPercentage + ((0 - limitMin) * sizeUnit)) )))
-                path4.addLine(to: CGPoint(x: CGFloat(maxX), y: CGFloat(maxY - (borderPercentage + ((0 - limitMin) * sizeUnit)) )))
-                context.stroke(
-                    path4,
-                    with: .color(Color(red: 0 / 255, green: 48 / 255, blue: 146 / 255))
-                )
+//                var path4 = Path()
+//                path4.move(to: CGPoint(x: CGFloat(0), y: CGFloat(maxY - (borderPercentage + ((0 - limitMin) * sizeUnit)) )))
+//                path4.addLine(to: CGPoint(x: CGFloat(maxX), y: CGFloat(maxY - (borderPercentage + ((0 - limitMin) * sizeUnit)) )))
+//                context.stroke(
+//                    path4,
+//                    with: .color(Color(red: 0 / 255, green: 48 / 255, blue: 146 / 255))
+//                )
                 // #########################################
                 ///0 degree
 //                context.draw(Text("0").bold().foregroundColor(Color(red: 179 / 255, green: 255 / 255, blue: 255 / 255)).font(.system(size: fontSize1)), in: CGRect(x: maxX + (boxPercentWidth * 2), y: (maxY - ((boxPercentWidth * 3) + borderPercentage + ((0 - limitMin) * sizeUnit))), width: boxPercentWidth * 4, height: boxPercentWidth * 4))
